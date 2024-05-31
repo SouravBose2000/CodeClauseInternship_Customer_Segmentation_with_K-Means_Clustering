@@ -1,0 +1,129 @@
+---
+title: "Customer Segmentation with K-Means Clustering"
+output: html_notebook
+---
+K-means clustering can be used to classify observations into k groups, based on their similarity. Each group is represented by the mean value of points in the group, known as the cluster centroid.
+
+K-means algorithm requires users to specify the number of cluster to generate. The R function kmeans() [stats package] can be used to compute k-means algorithm. The simplified format is kmeans(x, centers), where “x” is the data and centers is the number of clusters to be produced.
+
+After, computing k-means clustering, the R function fviz_cluster() [factoextra package] can be used to visualize the results. The format is fviz_cluster(km.res, data), where km.res is k-means results and data corresponds to the original data sets.
+
+Loading the data set
+```{r}
+# Loading the data set
+customer_data=read.csv(file.choose(),header = TRUE)
+```
+data link- https://www.kaggle.com/datasets/vjchoudhary7/customer-segmentation-tutorial-in-python/download?datasetVersionNumber=1
+
+Viewing the first 3 rows of the data
+```{r}
+head(customer_data,n=3)
+```
+finding the number of rows and columns
+```{r}
+nrow(customer_data)  # number of rows
+ncol(customer_data)  # number of columns
+```
+First value 200 represents number of rows so we have the data for 200 different customers and the second value 5 represents number of columns.
+
+Getting some information about the data set
+```{r}
+str(customer_data)
+summary(customer_data)
+```
+From structure we can conclude that data consists of 4 numerical data (CustomerID , Age , Annual Income, Spending.Score) and 1 categorical data(Gender).
+
+From above summary we can conclude that minimum age is 18 and maximum age is 70.
+Minimum annual income is 15 and maximum annual income is 137.
+Minimum spending score is 1 and maximum spending score is 99. 
+```{r}
+# Age
+hist(customer_data$Age,
+     main = "Histogram To Show Count Of Age Class",
+     xlab = "Age",
+     ylab = "Frequency",
+     col = "blue",
+     labels = TRUE)
+```
+From Histogram plot of age we can see the distribution plot of the frequency customer age and conclude that age is well distrubuted.
+```{r}
+# Annual Income
+hist(customer_data$Annual.Income..k..,
+     main = "Histogram For Annual Income",
+     xlab = "Annual Income Class",
+     ylab = "Frequency",
+     col = "#660033",
+     labels = TRUE)
+```
+From Histogram plot of annual income we can see the distribution plot of the frequency of customer's annual income and conclude that annual income is well distributed.
+```{r}
+# Spending Score
+hist(customer_data$Spending.Score..1.100.,
+     main = "Histogram For Spending Score",
+     xlab = "Spending Score Class",
+     ylab = "Frequency",
+     col = "green",
+     labels = TRUE)
+```
+From Histogram plot of Spending Score we can see the distribution plot of the frequency of customer's Spending Score and conclude that Spending Score is well distrubuted.
+
+checking for missing values
+```{r}
+# checking for missing values
+colSums(is.na(customer_data))
+```
+We don't have any missing values in this data set.
+
+Choosing the Age Column , Annual Income Column & Spending Score column
+```{r}
+data<-customer_data[,c(4,5)]
+```
+The first column CustomerID is not required because it is not an actual attribute.The second column is not also required because it is a categorical data,we can't measure distance in categorical data. We are also not choosing age because age is also that much required. So we are creating a data frame including numerical data which are Annual income and Spending score for K-Means Clustering.
+
+scaling data
+```{r}
+df<-scale(data)
+```
+Since we have different range for Age(15-70), Annual Income(15-137) and Spending Score (1-99) that's why we have to scale the data to make sure they are on the same range.scaling ensures that K-means clustering operates effectively and efficiently by treating all variables equally and preventing dominance by variables with larger scales. It leads to more accurate and interpretable cluster assignments.
+
+Finding the optimal number of clusters using elbow method
+```{r}
+fviz_nbclust(df, kmeans, method = "wss") + 
+  geom_vline(xintercept = 4, linetype = 2) + 
+  labs(subtitle = "Elbow method")
+```
+Optimum number of cluster = 4
+
+The standard R function for k-means clustering is kmeans() [stats package], which simplified format is as follow:
+
+kmeans(x, centers, iter.max = 10, nstart = 1)
+x: numeric matrix, numeric data frame or a numeric vector
+centers: Possible values are the number of clusters (k) or a set of initial (distinct) cluster centers. If a number, a random set of (distinct) rows in x is chosen as the initial centers.
+iter.max: The maximum number of iterations allowed. Default value is 10.
+nstart: The number of random starting partitions when centers is a number. Trying nstart > 1 is often recommended.
+
+Compute kmeans with k=4
+```{r}
+km.res <- kmeans(df, 4, nstart = 25)
+```
+As the final result of k-means clustering result is sensitive to the random starting assignments, we specify nstart = 25. This means that R will try 25 different random starting assignments and then select the best results corresponding to the one with the lowest within cluster variation. The default value of nstart in R is one. But, it’s strongly recommended to compute k-means clustering with a large value of nstart such as 25 or 50, in order to have a more stable result.
+
+Print the result
+```{r}
+print(km.res)
+```
+The printed output displays:
+
+the cluster means or centers: a matrix, which rows are cluster number (1 to 4) and columns are variables
+the clustering vector: A vector of integers (from 1:k) indicating the cluster to which each point is allocated.
+
+Adding the point classification to the original data
+```{r}
+dd <- cbind(customer_data, cluster = km.res$cluster)
+head(dd)
+```
+visualizing the clusters
+```{r}
+fviz_cluster(km.res, data = df)
+```
+So from these project we went through Customer Segmentation model,we developed this using class of machine learning known as unsupervised learning and specially we made use of clustering algorithm called k-means clustering.we analyze and visualize the data then proceeded to implement our algorithm.
